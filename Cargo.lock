@@ -60,6 +60,9 @@ dependencies = [
 [[package]]
 name = "electric_lib"
 version = "0.1.0"
+dependencies = [
+ "winapi",
+]
 
 [[package]]
 name = "hashbrown"

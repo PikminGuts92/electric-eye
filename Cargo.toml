@@ -1,0 +1,11 @@
+[workspace]
+
+members = [
+    "electric_lib",
+    "usbtool"
+]
+
+[profile.release]
+codegen-units = 1
+lto = true
+opt-level = 'z'  # Optimize for size

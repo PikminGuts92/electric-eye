@@ -15,6 +15,7 @@ impl SubApp for ShowUSBApp {
         let man = HidManager::new();
         let devices = man.get_devices();
 
+        println!("Complete!");
         Ok(())
     }
 }

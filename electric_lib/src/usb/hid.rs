@@ -6,6 +6,7 @@ use std::ptr::{null, null_mut};
 use winapi::{
     self,
     shared::devpkey::{
+        DEVPKEY_Device_Class,
         DEVPKEY_Device_FriendlyName,
         DEVPKEY_Device_LocationInfo,
         DEVPKEY_Device_PDOName,
@@ -39,6 +40,7 @@ pub struct HidDevice {
     pub path: String,
     pub product_id: u32,
     pub vendor_id: u32,
+    pub dev_class: String,
     pub product_str: String,
     pub serial_num_str: String,
     pub dev_inst: Option<u32>,
@@ -76,6 +78,7 @@ impl HidManager {
                 }
 
                 // Get device properties
+                let dev_class = self.get_device_property_string(&DEVPKEY_Device_Class, &mut dev_info_data, &mut buffer);
                 let friendly_name = self.get_device_property_string(&DEVPKEY_Device_FriendlyName, &mut dev_info_data, &mut buffer);
                 let loc_info = self.get_device_property_string(&DEVPKEY_Device_LocationInfo, &mut dev_info_data, &mut buffer);
                 let pdo_name = self.get_device_property_string(&DEVPKEY_Device_PDOName, &mut dev_info_data, &mut buffer);
@@ -111,6 +114,7 @@ impl HidManager {
                             .unwrap_or_default(),
                         None => 0,
                     },
+                    dev_class,
                     product_str: friendly_name,
                     serial_num_str: match serial {
                         Some(s) => s.to_owned(),

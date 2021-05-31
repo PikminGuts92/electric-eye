@@ -1,12 +1,15 @@
+use std::convert::TryInto;
+use std::io::Read;
 use std::mem::{size_of, zeroed};
 use std::ptr::{null, null_mut};
 #[cfg(windows)]
 use winapi::{
     self,
-    shared::minwindef::{BOOL, FALSE},
+    shared::devpkey::DEVPKEY_Device_FriendlyName,
+    shared::devpropdef::DEVPROPTYPE,
+    shared::minwindef::{BOOL, BYTE, DWORD, FALSE},
     shared::guiddef::GUID,
     shared::windef::HWND,
-    shared::minwindef::DWORD,
     um::winnt::PCWSTR,
     um::setupapi,
 };
@@ -46,8 +49,27 @@ impl HidManager {
                     break;
                 }
 
+                // Get device properties
+                let mut prop_type: DEVPROPTYPE = zeroed();
+                let mut buffer: [BYTE; 4096] = zeroed();
+                let mut req_size: DWORD = 0;
+                let setup_prop_res = setupapi::SetupDiGetDevicePropertyW(dev_info_set, &mut dev_info_data, &DEVPKEY_Device_FriendlyName, &mut prop_type, &mut buffer as *mut BYTE, buffer.len() as u32, &mut req_size, 0);
+
                 //setupapi::SetupDiGetDevicePropertyW(dev_info_set, &dev_info_data, )
                 //setupapi::SetupDiEnumDeviceInfo(dev_info_set, dev_idx, &mut dev_info_data);
+
+                let name;
+
+                if req_size == 0 {
+                    name = String::new();
+                } else {
+                    let str_vec = &buffer[..(req_size as usize)]
+                        .chunks(2)
+                        .map(|c| u16::from_le_bytes(c.try_into().unwrap())) // le_bytes is system specific!
+                        .collect::<Vec<u16>>();
+
+                    name = String::from_utf16(str_vec).unwrap_or_default();
+                }
 
                 let mut member_idx: u32 = 0;
                 loop {

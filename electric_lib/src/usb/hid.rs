@@ -154,6 +154,15 @@ impl HidManager {
     }
 }
 
+impl Drop for HidManager {
+    fn drop(&mut self) {
+        unsafe {
+            // Cleanup dev_info_set
+            setupapi::SetupDiDestroyDeviceInfoList(self.dev_info_set);
+        }
+    }
+}
+
 fn get_usb_details(dev_id: &str) -> (Option<&str>, Option<&str>, Option<&str>) { // pid, vid, serial #
     let mut pid = None;
     let mut vid = None;

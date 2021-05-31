@@ -11,13 +11,16 @@ use winapi::{
         DEVPKEY_Device_PDOName,
     },
     shared::devpropdef::{DEVPROPKEY, DEVPROPTYPE},
-    shared::minwindef::{BOOL, BYTE, DWORD, FALSE},
+    shared::minwindef::{BOOL, BYTE, DWORD, FALSE, ULONG},
     shared::guiddef::GUID,
     shared::usbiodef::GUID_DEVINTERFACE_USB_DEVICE,
     shared::windef::HWND,
     um::{
         cfgmgr32::{
             CM_Get_Device_IDW,
+            CM_GET_DEVICE_INTERFACE_LIST_PRESENT,
+            CM_Get_Device_Interface_List_SizeW,
+            CM_Get_Device_Interface_ListW,
             MAX_DEVICE_ID_LEN,
         },
         setupapi,
@@ -80,9 +83,24 @@ impl HidManager {
                 let loc_info = self.get_device_property_string(&DEVPKEY_Device_LocationInfo, &mut dev_info_data, &mut buffer);
                 let pdo_name = self.get_device_property_string(&DEVPKEY_Device_PDOName, &mut dev_info_data, &mut buffer);
 
+                // Get device ids
                 CM_Get_Device_IDW(dev_info_data.DevInst, &mut instance_id_buffer as *mut WCHAR, instance_id_buffer.len() as u32, 0);
                 let dev_id = String::from_utf16(&instance_id_buffer).unwrap_or_default();
                 let (pid, vid, serial) = get_usb_details(&dev_id);
+
+                // Get device path (not working)
+                /*let mut face_size: ULONG = 0;
+                CM_Get_Device_Interface_List_SizeW(&mut face_size, &mut dev_info_data.ClassGuid as *mut GUID, &mut instance_id_buffer as *mut WCHAR, CM_GET_DEVICE_INTERFACE_LIST_PRESENT);
+
+                if face_size > 0 { 
+                    let mut buffer: Box<[[WCHAR; 4096]]> = vec![[0; 4096]; face_size as usize].into_boxed_slice();
+                    println!("Buffer length: {}", buffer.len());
+
+                    CM_Get_Device_Interface_ListW(&mut dev_info_data.ClassGuid as *mut GUID, &mut instance_id_buffer as *mut WCHAR, buffer.as_mut_ptr() as *mut WCHAR, buffer.len() as u32, CM_GET_DEVICE_INTERFACE_LIST_PRESENT);
+
+                    let path_name = String::from_utf16(&buffer[0]).unwrap_or_default();
+                    println!("Path name: {}", &path_name);
+                }*/
 
                 /*let mut member_idx: u32 = 0;
                 loop {
@@ -113,7 +131,7 @@ impl HidManager {
                         Some(s) => s.to_owned(),
                         None => String::new(),
                     },
-                    //dev_inst: Option<i32>,
+                    dev_inst: Some(dev_info_data.DevInst),
                     pdo_name,
                     ..Default::default()
                 });

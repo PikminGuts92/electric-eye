@@ -17,7 +17,6 @@ impl SubApp for ShowUSBApp {
         let devices = man.get_usb_devices();
 
         print_devices(&devices);
-        println!("Complete!");
         Ok(())
     }
 }

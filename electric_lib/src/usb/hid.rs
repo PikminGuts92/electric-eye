@@ -36,10 +36,10 @@ pub struct HidDevice {
     pub path: String,
     pub product_id: i32,
     pub vendor_id: i32,
-    pub product_str: Option<String>,
-    pub serial_num_str: Option<String>,
+    pub product_str: String,
+    pub serial_num_str: String,
     pub dev_inst: Option<i32>,
-    pub pdo_name: Option<String>,
+    pub pdo_name: String,
 }
 
 impl HidManager {
@@ -99,16 +99,10 @@ impl HidManager {
                     //path: String,
                     //product_id: i32,
                     //vendor_id: i32,
-                    product_str: match friendly_name.is_empty() {
-                        true => None,
-                        false => Some(friendly_name)
-                    },
+                    product_str: friendly_name,
                     //serial_num_str: Option<String>,
                     //dev_inst: Option<i32>,
-                    pdo_name: match pdo_name.is_empty() {
-                        true => None,
-                        false => Some(pdo_name)
-                    },
+                    pdo_name,
                     ..Default::default()
                 });
             }

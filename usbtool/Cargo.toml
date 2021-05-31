@@ -5,4 +5,5 @@ edition = "2018"
 
 [dependencies]
 clap = "3.0.0-beta.2"
+cli-table = "0.4"
 electric_lib = { path = "../electric_lib" }

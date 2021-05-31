@@ -34,11 +34,11 @@ pub struct HidManager {
 #[derive(Debug, Default)]
 pub struct HidDevice {
     pub path: String,
-    pub product_id: i32,
-    pub vendor_id: i32,
+    pub product_id: u32,
+    pub vendor_id: u32,
     pub product_str: String,
     pub serial_num_str: String,
-    pub dev_inst: Option<i32>,
+    pub dev_inst: Option<u32>,
     pub pdo_name: String,
 }
 
@@ -82,6 +82,7 @@ impl HidManager {
 
                 CM_Get_Device_IDW(dev_info_data.DevInst, &mut instance_id_buffer as *mut WCHAR, instance_id_buffer.len() as u32, 0);
                 let dev_id = String::from_utf16(&instance_id_buffer).unwrap_or_default();
+                let (pid, vid, serial) = get_usb_details(&dev_id);
 
                 /*let mut member_idx: u32 = 0;
                 loop {
@@ -97,10 +98,21 @@ impl HidManager {
 
                 devices.push(HidDevice {
                     //path: String,
-                    //product_id: i32,
-                    //vendor_id: i32,
+                    product_id: match pid {
+                        Some(pid) => u32::from_str_radix(pid, 16)
+                            .unwrap_or_default(),
+                        None => 0,
+                    },
+                    vendor_id: match vid {
+                        Some(vid) => u32::from_str_radix(vid, 16)
+                            .unwrap_or_default(),
+                        None => 0,
+                    },
                     product_str: friendly_name,
-                    //serial_num_str: Option<String>,
+                    serial_num_str: match serial {
+                        Some(s) => s.to_owned(),
+                        None => String::new(),
+                    },
                     //dev_inst: Option<i32>,
                     pdo_name,
                     ..Default::default()
@@ -140,4 +152,30 @@ impl HidManager {
         // TODO: Return unsupported platform error
         Vec::new()
     }
+}
+
+fn get_usb_details(dev_id: &str) -> (Option<&str>, Option<&str>, Option<&str>) { // pid, vid, serial #
+    let mut pid = None;
+    let mut vid = None;
+    let mut serial = None;
+
+    let split = dev_id.split("\\").collect::<Vec<_>>();
+
+    // Get pid/vid
+    if let Some(ids) = split.get(1) {
+        for id in ids.split("&") {
+            match &id[..4] {
+                "PID_" => pid = Some(&id[4..]),
+                "VID_" => vid = Some(&id[4..]),
+                _ => continue,
+            }
+        }
+    }
+
+    // Get serial #
+    if let Some(s) = split.get(2) {
+        serial = Some(*s);
+    }
+
+    (pid, vid, serial)
 }

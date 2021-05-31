@@ -9,6 +9,7 @@ use winapi::{
     shared::devpropdef::DEVPROPTYPE,
     shared::minwindef::{BOOL, BYTE, DWORD, FALSE},
     shared::guiddef::GUID,
+    shared::usbiodef::GUID_DEVINTERFACE_USB_DEVICE,
     shared::windef::HWND,
     um::winnt::PCWSTR,
     um::setupapi,
@@ -33,8 +34,8 @@ pub struct HidDevice {
 impl HidManager {
     pub fn new() -> Self {
         unsafe {
-            let flags = setupapi::DIGCF_ALLCLASSES | setupapi::DIGCF_PRESENT;
-            let dev_info_set: setupapi::HDEVINFO = setupapi::SetupDiGetClassDevsW(null(), null(), null_mut(), flags);
+            let flags = setupapi::DIGCF_PRESENT | setupapi::DIGCF_DEVICEINTERFACE;
+            let dev_info_set: setupapi::HDEVINFO = setupapi::SetupDiGetClassDevsW(&GUID_DEVINTERFACE_USB_DEVICE, null(), null_mut(), flags);
 
             let mut dev_info_data: setupapi::SP_DEVINFO_DATA = zeroed();
             dev_info_data.cbSize = size_of::<setupapi::SP_DEVINFO_DATA>() as u32;

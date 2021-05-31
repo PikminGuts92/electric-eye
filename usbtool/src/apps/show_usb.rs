@@ -13,7 +13,7 @@ pub struct ShowUSBApp {
 impl SubApp for ShowUSBApp {
     fn process(&mut self) -> Result<(), Box<dyn Error>> {
         let man = HidManager::new();
-        let devices = man.get_devices();
+        let devices = man.get_usb_devices();
 
         println!("Complete!");
         Ok(())
